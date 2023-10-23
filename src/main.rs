@@ -11,6 +11,19 @@ enum Cepage {
     Riesling(String),
     Semillon(String),
     Viognier(String),
+
+    CabernetFranc(String),
+    CabernetSauvignon(String),
+    Gamay(String),
+    Grenache(String),
+    Malbec(String),
+    Merlot(String),
+    Nebiolo(String),
+    Pinotage(String),
+    PinotNoir(String),
+    SanGiovese(String),
+    Syrah(String),
+    Tempranillo(String),
 }
 
 struct Vin<'a> {
@@ -19,8 +32,11 @@ struct Vin<'a> {
     primaires_froid: Vec<String>,
     primaires_chaud: Vec<String>,
     acidite: &'a str,
+    rouge: bool,
     noms_alt: String,
     botrytis: bool,
+    elevage: bool,
+    malo: bool,
 }
 
 impl Vin<'_> {
@@ -54,8 +70,8 @@ impl Vin<'_> {
                 self.regions.push(reg.to_string());
             }
         }
-        for region in vin_aoc.split(", ").collect::<Vec<&str>>() {
-            if let Some(reg) = aoc_set.get(region) {
+        for aoc in vin_aoc.split(", ").collect::<Vec<&str>>() {
+            if let Some(reg) = aoc_set.get(aoc) {
                 self.aoc.push(reg.to_string());
             }
         }
@@ -82,13 +98,14 @@ impl Vin<'_> {
 }
 
 fn random_cepage() -> Cepage {
-    let rand = thread_rng().gen_range(0..5);
+    let rand = thread_rng().gen_range(0..6);
     match rand {
         0 => Cepage::Chardonnay("Chardonnay".to_string()),
         1 => Cepage::Riesling("Riesling".to_string()),
         2 => Cepage::Gewurztraminer("Gewurztraminer".to_string()),
         3 => Cepage::Semillon("Semillon".to_string()),
-        4 => Cepage::Furmint("Furmint".to_string()),
+        4 => Cepage::CheninBlanc("CheninBlanc".to_string()),
+        5 => Cepage::Furmint("Furmint".to_string()),
         _ => panic!("{rand}"),
     }
 }
@@ -99,25 +116,28 @@ fn quizz(mut vin: Vin, mut cepage_string: String) {
         format!("-> Quel cépage donne un vin aux arômes de {} lorsqu'il est cultivé dans un climat froid ?",
         vin.random_three(true).join(", ")),
 
-        format!("-> Des arômes de {} embellisent cet elixir quand il provient d'un pays tempéré... Qui suis-je ?",
+        format!("-> Des arômes de {} embellissent cet elixir quand il provient d'un pays tempéré...",
         vin.random_three(true).join(", ")),
 
-        format!("-> En contrées chaudes, ce cépage donnera un vin aux notes plus exotiques de {}. Je suis le...",
+        format!("-> En contrées chaudes, ce cépage donnera un vin aux notes plus exotiques de {}.",
         vin.random_three(false).join(", ")),
 
-        format!("-> {}... autant de régions et de pays qui ont fait sa renommée ! Je suis le...",
+        format!("-> {}... autant de régions et de pays qui apprécient mes qualités gustatives ! Je suis le...",
         vin.regions.join(", ")),
 
-        format!("-> Des quilles renommées proviennent entre autres de: {}.",
+        format!("-> Les quilles qui font ma renommée proviennent entre autres de: {}.",
         vin.aoc.join(", ")),
 
-        format!("-> Ce cépage a une acidité {}.",
+        format!("-> On qualifie mon acidité de {}... Une petit idée ?",
         vin.acidite),
 
     ];
 
     if vin.botrytis == true {
-        questions.push("Parfois on me laisse pourrir... mais de façon noble, avec mon acolyte le botrytis, qui me confère un goût exquis !".to_string());
+        questions.push("-> Parfois on me laisse pourrir... mais de façon noble, ce qui me confère un goût exquis !".to_string());
+    }
+    if vin.rouge == false {
+        questions.push("-> On me qualifie de raisin blanc, mais perso je me trouve plutôt vert clair avec des reflets ambrés.".to_string());
     }
 
     let mut iter_track = 0;
@@ -199,14 +219,18 @@ fn main() {
 
     let primaires_set = HashSet::from([
         "abricot",
+        "abricot sec",
         "acacia",
         "ananas",
         "banane",
+        "canelle",
         "citron",
         "citron confit",
         "citron vert",
+        "coing",
         "coquille d'huître",
         "craie",
+        "datte",
         "eucalyptus",
         "fleurs blanches",
         "fleur d'oranger",
@@ -222,6 +246,7 @@ fn main() {
         "miel",
         "muscade",
         "nectarine",
+        "noisette",
         "noix de coco",
         "noix de muscade",
         "noix fraîche",
@@ -238,10 +263,12 @@ fn main() {
         "poire",
         "poivre blanc",
         "pomme verte",
+        "raisin sec",
         "rose",
         "sirop d'érable",
         "shiste",
         "tilleul",
+        "verveine",
     ]);
 
     let secondaires_set = HashSet::from([
@@ -251,12 +278,14 @@ fn main() {
         "noisette",
         "noix",
         "pain grillé",
+        "torrefaction",
         "vanille",
         "yoghurt",
     ]);
 
     let tertiaire_set = HashSet::from([
         "champignon",
+        "chocolat",
         "cuir",
         "fruits secs",
         "sauce soja",
@@ -272,23 +301,33 @@ fn main() {
         "Bordeaux",
         "Bourgogne",
         "Californie",
+        "Croatie",
+        "France",
+        "Hongrie",
         "Rhin",
+        "Slovaquie",
+        "Slovénie",
         "Provence",
     ]);
 
     let aoc_set = HashSet::from([
+        "Bergerac (Dordogne)",
         "Chablis (Bourgogne)",
+        "Coteaux du Layon (Loire)",
         "Meursault (Bourgogne)",
         "Montrachet (Bourgogne)",
         "Monbazillac (Dordogne)",
-        "Mosel (Rhin)",
+        "Moselle (Rhin)",
         "Pfalz (Rhin)",
         "Napa Valley (Californie)",
+        "Pessac-Léognan (Bordeaux)",
         "Puligny-Montrachet (Bourgogne)",
         "Rheingau (Rhin)",
         "Rheinessen (Rhin)",
         "Sauternes (Bordeaux)",
+        "Stellenbosch (Afrique du Sud)",
         "Sonoma County(Californie)",
+        "Vouvray (Loire)",
     ]);
 
     let acidite: [&str; 4] = ["peu élevée", "modérée", "élevée", "très élevée"];
@@ -304,6 +343,9 @@ fn main() {
         acidite: acidite[1],
         noms_alt: String::from(""),
         botrytis: false,
+        rouge: false,
+        elevage: true,
+        malo: true,
     };
 
     chardonnay.add_aromes(
@@ -327,12 +369,15 @@ fn main() {
         acidite: acidite[3],
         noms_alt: String::from(""),
         botrytis: false,
+        rouge: false,
+        elevage: false,
+        malo: false,
     };
 
     riesling.add_aromes("pomme verte, poire, pêche blanche, citron, mandarine, miel, pamplemousse jaune, parafine, pétrole, pierre à fusil, shiste, fleur d'oranger", "ananas, pêche, abricot, fleurs blanches", &primaires_set);
     riesling.add_regions(
         "Rhin, Alsace, Autriche",
-        "Mosel (Rhin), Rheingau (Rhin), Pfalz (Rhin)",
+        "Moselle (Rhin), Rheingau (Rhin), Pfalz (Rhin), Rheinessen (Rhin)",
         &regions_set,
         &aoc_set,
     );
@@ -345,14 +390,17 @@ fn main() {
         acidite: acidite[0],
         noms_alt: String::from(""),
         botrytis: true,
+        rouge: false,
+        elevage: false,
+        malo: false,
     };
 
     gewurztraminer.add_aromes("litchi, rose, pamplemousse rose, jasmin, fleurs blanches, menthe, poivre blanc, noix de muscade, gingembre, citron vert, pomme verte, poire",
     " litchi, ananas, passion, papaye, mangue, fleur d'oranger, gingembre, miel, orange confite",
     &primaires_set);
-    riesling.add_regions(
+    gewurztraminer.add_regions(
         "Rhin, Alsace, Autriche",
-        "Mosel (Rhin)",
+        "Moselle (Rhin), Rheingau (Rhin), Pfalz (Rhin), Rheinessen (Rhin)",
         &regions_set,
         &aoc_set,
     );
@@ -365,6 +413,9 @@ fn main() {
         acidite: acidite[1],
         noms_alt: String::from("Chevrier, Semilao, Hunter River Riesling"),
         botrytis: true,
+        rouge: false,
+        elevage: true,
+        malo: true,
     };
 
     semillon.add_aromes(
@@ -372,8 +423,59 @@ fn main() {
         "ananas, mangue, citron confit, orange, pêche, abricot, fleur d'oranger, jasmin",
         &primaires_set);
     semillon.add_regions(
-        "Bordeaux, Provence",
-        "Sauternes (Bordeaux), Monbazillac (Dordogne)",
+        "Bordeaux, Provence, Australie",
+        "Sauternes (Bordeaux), Pessac-Léognan (Bordeaux), Bergerac(Dordogne), Monbazillac (Dordogne), Valle de Hunter (Australie)",
+        &regions_set,
+        &aoc_set,
+    );
+
+    let mut chenin_blanc = Vin {
+        regions: Vec::new(),
+        aoc: Vec::new(),
+        primaires_froid: Vec::new(),
+        primaires_chaud: Vec::new(),
+        acidite: acidite[2],
+        noms_alt: String::from("Pineau de la Loire, Blanc d'Aunis, Anjou, Steen"),
+        botrytis: true,
+        rouge: false,
+        elevage: true,
+        malo: true,
+    };
+
+    chenin_blanc.add_aromes(
+        "pomme verte, poire, citron vert, tilleul, fleurs blanches, craie, miel, acacia",
+        "ananas, coing, citron confit, orange, pêche jaune, abricot, fleur d'oranger",
+        &primaires_set,
+    );
+
+    chenin_blanc.add_regions(
+        "Loire, Afrique du Sud, Australie",
+        "Vouvrai (Loire), Coteaux du Layon (Loire), Stellenbosch (Afrique du Sud)",
+        &regions_set,
+        &aoc_set,
+    );
+
+    let mut furmint = Vin {
+        regions: Vec::new(),
+        aoc: Vec::new(),
+        primaires_froid: Vec::new(),
+        primaires_chaud: Vec::new(),
+        acidite: acidite[2],
+        noms_alt: String::from(""),
+        botrytis: true,
+        rouge: false,
+        elevage: true,
+        malo: true,
+    };
+
+    furmint.add_aromes(
+        "pomme verte, citron, citron vert, pamplemousse, shiste, craie, pierre à fusil, menthe, verveine",
+        "coing, citron confit, orange, pêche jaune, abricot, abricot sec, miel, raisin sec, datte, canelle, gingembre",
+        &primaires_set,
+    );
+    furmint.add_regions(
+        "Hongrie, Slovaquie, Croatie, Slovénie",
+        "Tokaj (Hongrie) ",
         &regions_set,
         &aoc_set,
     );
@@ -384,20 +486,22 @@ fn main() {
 
     match cepage_enum {
         Cepage::Chardonnay(cep) => {
-            //println!("{}", cep);
             quizz(chardonnay, cep);
         }
         Cepage::Gewurztraminer(cep) => {
-            //println!("{}", cep);
             quizz(gewurztraminer, cep);
         }
         Cepage::Riesling(cep) => {
-            //println!("{}", cep);
             quizz(riesling, cep);
         }
         Cepage::Semillon(cep) => {
-            //println!("{}", cep);
             quizz(semillon, cep);
+        }
+        Cepage::CheninBlanc(cep) => {
+            quizz(chenin_blanc, cep);
+        }
+        Cepage::Furmint(cep) => {
+            quizz(furmint, cep);
         }
         _ => println!("Autre"),
     };
